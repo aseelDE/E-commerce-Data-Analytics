@@ -55,4 +55,3 @@ if __name__ == "__main__":
     )
 
 
-git remote add origin https://github.com/aseelDE/E-commerce-Data-Analytics.git
