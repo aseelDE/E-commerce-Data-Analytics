@@ -4,6 +4,8 @@ import google.cloud.bigquery as bq
 import prefect as pf
 import os
 from prefect import flow, task
+from dotenv import load_dotenv
+load_dotenv()
 
 
     #Fetching data from API
@@ -23,9 +25,9 @@ def ingest_data(api_url):
     #Loading data to BigQuery
 @task
 def load_to_bigquery(df, table_id):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:\\Users\\aseel.alzahrani\\Downloads\\e-commerce-de-project-02e501ecfee6.json"
-    client = bq.Client(project="e-commerce-de-project")
-    dataset_id = "ecommerce_raw"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    client = bq.Client(project=os.getenv("BIGQUERY_PROJECT"))
+    dataset_id = os.getenv("BIGQUERY_DATASET")
     table_ref = client.dataset(dataset_id).table(table_id)
     job_config = bq.LoadJobConfig(
         write_disposition=bq.WriteDisposition.WRITE_TRUNCATE
@@ -35,15 +37,15 @@ def load_to_bigquery(df, table_id):
     print("Data loaded successfully to BigQuery")
 @flow
 def main():
-    df = ingest_data("https://fakestoreapi.com/users")
+    df = ingest_data(os.getenv("USERS_URL"))     
     if df is not None:
         load_to_bigquery(df, "ecommercerawusers")
 
-    df = ingest_data("https://fakestoreapi.com/products")  
+    df = ingest_data(os.getenv("PRODUCTS_URL"))  
     if df is not None:                                   
         load_to_bigquery(df, "ecommercerawproducts")       
 
-    df = ingest_data("https://fakestoreapi.com/carts")      
+    df = ingest_data(os.getenv("CARTS_URL"))      
     if df is not None:                                     
         load_to_bigquery(df, "ecommercerawcarts")           
 
@@ -53,5 +55,4 @@ if __name__ == "__main__":
         name="ecommerce-pipeline",
         cron="0 * * * *"  
     )
-
 
